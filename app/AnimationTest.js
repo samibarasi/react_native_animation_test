@@ -20,7 +20,7 @@ class AnimationTest extends React.Component {
     super(props);
 
     this.state = {
-      index:            cards.length - 1,
+      index:            0,
       side:             'front',
       statusBarHeight:  getStatusBarHeight(),
     };
