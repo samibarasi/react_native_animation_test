@@ -4,6 +4,7 @@ import {
   StyleSheet,
   View,
   Animated,
+  Dimensions
 } from 'react-native';
 
 import React from 'react';
@@ -40,11 +41,21 @@ class AnimationTest extends React.Component {
       inputRange: [0, 180],
       outputRange: ['180deg', '360deg']
     })
+
+    
   }
 
   render() {
     const index = this.state.index;
     const side = this.state.side;
+
+    // const screenWidth = Dimensions.get('window').width;
+    // const screenHeight = Dimensions.get('window').height;
+
+    // const screenDimensionStyle = {
+    //   width: screenWidth,
+    //   height: screenHeight
+    // }
 
     const frontAnimatedStyle = {
       transform: [
@@ -150,7 +161,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    padding: 7,
+    margin: 7,
     position: 'relative'
   },
   ctrls: {
@@ -164,8 +175,8 @@ const styles = StyleSheet.create({
   },
   flipCard: {
     position: 'absolute',
-    top: 7,
-    left: 7,
+    top: 0,
+    left: 0,
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
