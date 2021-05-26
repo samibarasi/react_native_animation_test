@@ -18,7 +18,7 @@ const Btn = (props) => {
 }
 
 class AnimationTest extends React.Component {
-  
+
   constructor(props) {
     super(props);
 
@@ -27,7 +27,8 @@ class AnimationTest extends React.Component {
       side: 'front',
       statusBarHeight: getStatusBarHeight(),
       fadeAnim: new Animated.Value(1),
-      moveAnim: new Animated.ValueXY()
+      moveAnim: new Animated.ValueXY(),
+      changingCard: false
     };
 
     this.animatedValue = new Animated.Value(0);
@@ -49,35 +50,69 @@ class AnimationTest extends React.Component {
   }
 
 
-  fadeIn = () => {
-    this.state.fadeAnim.setValue(0);
-    Animated.sequence([
-      // Animated.timing(this.state.fadeAnim, {
-      //   toValue: 0,
-      //   duration: 10,
-      //   useNativeDriver: true
-      // }),
-      Animated.timing(this.state.fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true
-      })
-    ]).start()
-    
+  moveIn = (direction) => {
+    const screenWidth = Dimensions.get('window').width;
 
-    // Animated.timing(this.state.fadeAnim, {
-    //   toValue: 1,
-    //   duration: 800,
-    //   useNativeDriver: true
-    // }).start();
+    if (direction === -1) {
+      const animation2 = () => {
+        this.setState({ index: this.state.index - 1, side: 'front', changingCard: false });
+        this.state.moveAnim.setValue({ x: -screenWidth });
+
+        Animated.parallel([
+          Animated.timing(this.state.moveAnim, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true
+          }),
+          Animated.timing(this.state.fadeAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true
+          })
+        ]).start()
+  
+      }
+
+      Animated.timing(this.state.fadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true
+      }).start(animation2);
+
+      
+    } else {
+
+      const animation2 = () => {
+        this.setState({ index: this.state.index + 1, side: 'front', changingCard: false });
+        this.state.moveAnim.setValue({ x: 0 });
+
+        Animated.timing(this.state.fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      }
+
+      Animated.parallel([
+        Animated.timing(this.state.moveAnim, {
+          toValue: -screenWidth,
+          duration: 400,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.state.fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true
+        })
+      ]).start(animation2)
+    }
+
   };
 
   render() {
-    console.log('render', this.state.fadeAnim);
     const index = this.state.index;
     const side = this.state.side;
 
-    // const screenWidth = Dimensions.get('window').width;
     // const screenHeight = Dimensions.get('window').height;
 
     // const screenDimensionStyle = {
@@ -99,7 +134,7 @@ class AnimationTest extends React.Component {
     //const cardFace = cards[index][side];
     const bodyStyles = { marginTop: this.state.statusBarHeight };
 
-    const cardFace = <Animated.View style={[bodyStyles, styles.body, { opacity: this.state.fadeAnim }]}>
+    const cardFace = <Animated.View style={[styles.flipWrapper, { opacity: this.state.fadeAnim, left: this.state.moveAnim.x }]}>
       <Animated.View style={[backAnimatedStyle, styles.flipCard, styles.flipCardBack]}>
         {cards[index]['back']}
       </Animated.View>
@@ -115,7 +150,7 @@ class AnimationTest extends React.Component {
     }
 
     const btns = [];
-    if (index > 0) {
+    if (!this.state.changingCard && index > 0) {
       btns.push(<Btn key='prev' title='<<' onPress={this.prevCard} />);
     } else {
       btns.push(<Btn key='prev' title='<<' disabled={true} />);
@@ -125,7 +160,7 @@ class AnimationTest extends React.Component {
     } else {
       btns.push(<Btn key='flip' title='Reveal Question' onPress={this.toggleSide} />);
     }
-    if (index < cards.length - 1) {
+    if (!this.state.changingCard && index < cards.length - 1) {
       btns.push(<Btn key='next' title='>>' onPress={this.nextCard} />);
     } else {
       btns.push(<Btn key='next' title='>>' disabled={true} />);
@@ -135,8 +170,9 @@ class AnimationTest extends React.Component {
       <View style={styles.container}>
         <StatusBar hidden={false} barStyle='dark-content' />
 
-
-        {cardFace}
+        <View style={[bodyStyles, styles.body]}>
+          {cardFace}
+        </View>
 
 
         <View style={[ctrlStyles, styles.ctrls]}>
@@ -170,18 +206,20 @@ class AnimationTest extends React.Component {
 
   prevCard = () => {
     if (this.state.index <= 0) { return; }
-    this.setState({ index: this.state.index - 1, side: 'front' });
-
-    this.fadeIn();
+    // this.setState({ index: this.state.index - 1, side: 'front' });
+    this.setState({ changingCard: true });
+    this.moveIn(-1);
 
   };
 
   nextCard = () => {
     if (this.state.index >= cards.length - 1) { return; }
 
-    this.setState({ index: this.state.index + 1, side: 'front' });
+    this.setState({ changingCard: true });
 
-    this.fadeIn();
+    // this.setState({ index: this.state.index + 1, side: 'front' });
+
+    this.moveIn();
   };
 }
 
@@ -204,6 +242,11 @@ const styles = StyleSheet.create({
   btn: {
     marginLeft: 3,
     marginRight: 3,
+  },
+  flipWrapper: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   flipCard: {
     position: 'absolute',
