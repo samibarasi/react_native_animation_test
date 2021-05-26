@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     borderWidth:   1,
     flex:          1,
     flexDirection: 'column',
+    width: '100%'
   },
   header: {
     alignItems:        'flex-start',
