@@ -26,7 +26,8 @@ class AnimationTest extends React.Component {
       index: 0,
       side: 'front',
       statusBarHeight: getStatusBarHeight(),
-      fadeAnim: new Animated.Value(1)
+      fadeAnim: new Animated.Value(1),
+      moveAnim: new Animated.ValueXY()
     };
 
     this.animatedValue = new Animated.Value(0);
@@ -49,17 +50,26 @@ class AnimationTest extends React.Component {
 
 
   fadeIn = () => {
-    Animated.timing(this.state.fadeAnim, {
-      toValue: 0,
-      duration: 0,
-      useNativeDriver: true
-    }).start();
+    this.state.fadeAnim.setValue(0);
+    Animated.sequence([
+      // Animated.timing(this.state.fadeAnim, {
+      //   toValue: 0,
+      //   duration: 10,
+      //   useNativeDriver: true
+      // }),
+      Animated.timing(this.state.fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true
+      })
+    ]).start()
+    
 
-    Animated.timing(this.state.fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true
-    }).start();
+    // Animated.timing(this.state.fadeAnim, {
+    //   toValue: 1,
+    //   duration: 800,
+    //   useNativeDriver: true
+    // }).start();
   };
 
   render() {
@@ -207,7 +217,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   flipCardBack: {
-    backgroundColor: 'pink'
+    backgroundColor: 'lightgreen'
   }
 });
 
