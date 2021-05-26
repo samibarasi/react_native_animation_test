@@ -18,6 +18,7 @@ const Btn = (props) => {
 }
 
 class AnimationTest extends React.Component {
+  
   constructor(props) {
     super(props);
 
@@ -25,6 +26,7 @@ class AnimationTest extends React.Component {
       index: 0,
       side: 'front',
       statusBarHeight: getStatusBarHeight(),
+      fadeAnim: new Animated.Value(1)
     };
 
     this.animatedValue = new Animated.Value(0);
@@ -42,10 +44,26 @@ class AnimationTest extends React.Component {
       outputRange: ['180deg', '360deg']
     })
 
-    
+
   }
 
+
+  fadeIn = () => {
+    Animated.timing(this.state.fadeAnim, {
+      toValue: 0,
+      duration: 0,
+      useNativeDriver: true
+    }).start();
+
+    Animated.timing(this.state.fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true
+    }).start();
+  };
+
   render() {
+    console.log('render', this.state.fadeAnim);
     const index = this.state.index;
     const side = this.state.side;
 
@@ -68,19 +86,19 @@ class AnimationTest extends React.Component {
       ]
     }
 
-    console.log(frontAnimatedStyle, backAnimatedStyle);
-
     //const cardFace = cards[index][side];
-    const cardFace = <View style={[bodyStyles, styles.body]}>
+    const bodyStyles = { marginTop: this.state.statusBarHeight };
+
+    const cardFace = <Animated.View style={[bodyStyles, styles.body, { opacity: this.state.fadeAnim }]}>
       <Animated.View style={[backAnimatedStyle, styles.flipCard, styles.flipCardBack]}>
         {cards[index]['back']}
       </Animated.View>
       <Animated.View style={[styles.flipCard, frontAnimatedStyle]}>
         {cards[index]['front']}
       </Animated.View>
-    </View>
+    </Animated.View>
 
-    const bodyStyles = { marginTop: this.state.statusBarHeight };
+
     const ctrlStyles = {};
     if (Platform.OS === 'ios') {
       ctrlStyles.marginBottom = 15;
@@ -121,35 +139,39 @@ class AnimationTest extends React.Component {
   toggleSide = () => {
     const side = this.state.side;
     this.setState({ side: side === 'front' ? 'back' : 'front' });
-    
+
     if (this.value >= 90) {
       Animated.spring(this.animatedValue, {
         toValue: 0,
         friction: 8,
         tension: 10,
-        useNativeDriver: true 
+        useNativeDriver: true
       }).start();
     } else {
       Animated.spring(this.animatedValue, {
         toValue: 180,
         friction: 8,
         tension: 10,
-        useNativeDriver: true 
+        useNativeDriver: true
       }).start();
     }
-    
+
   };
 
   prevCard = () => {
     if (this.state.index <= 0) { return; }
-
     this.setState({ index: this.state.index - 1, side: 'front' });
+
+    this.fadeIn();
+
   };
 
   nextCard = () => {
     if (this.state.index >= cards.length - 1) { return; }
 
     this.setState({ index: this.state.index + 1, side: 'front' });
+
+    this.fadeIn();
   };
 }
 
@@ -162,7 +184,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     margin: 7,
-    position: 'relative'
+    position: 'relative',
   },
   ctrls: {
     padding: 7,
@@ -184,6 +206,9 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
+  flipCardBack: {
+    backgroundColor: 'pink'
+  }
 });
 
 export { AnimationTest as default };
