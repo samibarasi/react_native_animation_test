@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     padding: 7,
+    position: 'relative'
   },
   ctrls: {
     padding: 7,
@@ -163,20 +164,15 @@ const styles = StyleSheet.create({
   },
   flipCard: {
     position: 'absolute',
-    top: 0,
+    top: 7,
+    left: 7,
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'blue',
     backfaceVisibility: 'hidden',
     height: '100%',
     width: '100%'
   },
-  flipCardBack: {
-    backgroundColor: 'red',
-    
-
-  }
 });
 
 export { AnimationTest as default };
