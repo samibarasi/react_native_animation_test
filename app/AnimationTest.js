@@ -23,18 +23,32 @@ class Card extends React.Component {
 
     this.state = {
       index: props.index,
+      face: 'front',
       fadeAnim: new Animated.Value(1),
       moveAnim: new Animated.ValueXY(),
       scaleAnim: new Animated.ValueXY(),
-      completeHandler: null
     };
 
     this.animatedValue = new Animated.Value(0);
+    this.value = 0;
+    this.animatedValue.addListener(({ value }) => {
+      this.value = value
+      if (this.value >= 90) {
+        if (this.state.face !== 'back') {
+          this.setState({ face: 'back' });
+        }
+      } else {
+        if (this.state.face !== 'front') {
+          this.setState({ face: 'front' });
+        }
+      }
+    });
 
     this.frontInterpolate = this.animatedValue.interpolate({
       inputRange: [0, 180],
       outputRange: ['0deg', '180deg']
     })
+
     this.backInterpolate = this.animatedValue.interpolate({
       inputRange: [0, 180],
       outputRange: ['180deg', '360deg']
@@ -50,7 +64,7 @@ class Card extends React.Component {
     this.moveIn()
   }
 
-  moveIn () {
+  moveIn() {
     const screenWidth = Dimensions.get('window').width;
 
     if (this.props.index < this.props.currentIndex) {
@@ -111,12 +125,9 @@ class Card extends React.Component {
         useNativeDriver: true
       }).start();
     }
-
-
   };
 
   render() {
-    const screenWidth = Dimensions.get('window').width;
     const frontAnimatedStyle = {
       transform: [
         { rotateX: this.frontInterpolate }
@@ -125,13 +136,14 @@ class Card extends React.Component {
     const backAnimatedStyle = {
       transform: [
         { rotateX: this.backInterpolate }
-      ]
+      ],
+      zIndex: this.state.face === 'back' ? 1 : 0
     }
 
     return (<Animated.View style={[styles.flipWrapper, {
       opacity: this.state.fadeAnim,
       transform: [
-        { scaleX: this.state.scaleAnim.x }, 
+        { scaleX: this.state.scaleAnim.x },
         { scaleY: this.state.scaleAnim.y },
         { translateX: this.state.moveAnim.x }
       ],
@@ -252,25 +264,25 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
   flipWrapper: {
+    flex: 1,
     position: 'absolute',
     width: '100%',
     height: '100%',
-    transform: [{scaleX: 0.7, scaleY: 0.7 }],
+    transform: [{ scaleX: 0.7, scaleY: 0.7 }],
   },
   flipCard: {
+    flex: 1,
     position: 'absolute',
-    top: 0,
-    left: 0,
+    width: '100%',
+    height: '100%',
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backfaceVisibility: 'hidden',
-    height: '100%',
-    width: '100%',
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   },
   flipCardBack: {
-    backgroundColor: 'lightgreen'
+    backgroundColor: 'lightgreen',
   }
 });
 
