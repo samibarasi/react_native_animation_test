@@ -42,7 +42,11 @@ class Card extends React.Component {
 
   }
 
-  moveIn = () => {
+  componentDidUpdate() {
+    this.moveIn()
+  }
+
+  moveIn () {
     const screenWidth = Dimensions.get('window').width;
 
     if (this.props.index < this.props.currentIndex) {
@@ -120,12 +124,13 @@ class Card extends React.Component {
       ]
     }
 
-    this.moveIn();
-
     return (<Animated.View style={[styles.flipWrapper, {
       opacity: this.state.fadeAnim,
-      left: this.state.moveAnim.x,
-      transform: [{ scaleX: this.state.scaleAnim.x}, {scaleY: this.state.scaleAnim.y}],
+      transform: [
+        { scaleX: this.state.scaleAnim.x }, 
+        { scaleY: this.state.scaleAnim.y },
+        { translateX: this.state.moveAnim.x }
+      ],
       zIndex: -this.props.index
     }]}>
       <Animated.View style={[backAnimatedStyle, styles.flipCard, styles.flipCardBack]}>
