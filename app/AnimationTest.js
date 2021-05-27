@@ -42,6 +42,10 @@ class Card extends React.Component {
 
   }
 
+  componentDidMount() {
+    this.moveIn();
+  }
+
   componentDidUpdate() {
     this.moveIn()
   }
