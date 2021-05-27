@@ -12,87 +12,40 @@ import cards from './Cards';
 import { StatusBar } from 'expo-status-bar';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 
-
 const Btn = (props) => {
   return <Button style={styles.btn} {...props} />;
 }
 
-class AnimationTest extends React.Component {
+class Card extends React.Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
-      index: 0,
-      side: 'front',
-      statusBarHeight: getStatusBarHeight(),
+      index: props.index,
       fadeAnim: new Animated.Value(1),
       moveAnim: new Animated.ValueXY(),
-      changingCard: false
+      scaleAnim: new Animated.ValueXY(),
+      completeHandler: null
     };
 
     this.animatedValue = new Animated.Value(0);
-    this.value = 0;
-    this.animatedValue.addListener(({ value }) => {
-      this.value = value
-    })
+
     this.frontInterpolate = this.animatedValue.interpolate({
       inputRange: [0, 180],
       outputRange: ['0deg', '180deg']
     })
-
     this.backInterpolate = this.animatedValue.interpolate({
       inputRange: [0, 180],
       outputRange: ['180deg', '360deg']
     })
 
-
   }
 
-
-  moveIn = (direction) => {
+  moveIn = () => {
     const screenWidth = Dimensions.get('window').width;
 
-    if (direction === -1) {
-      const animation2 = () => {
-        this.setState({ index: this.state.index - 1, side: 'front', changingCard: false });
-        this.state.moveAnim.setValue({ x: -screenWidth });
-
-        Animated.parallel([
-          Animated.timing(this.state.moveAnim, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true
-          }),
-          Animated.timing(this.state.fadeAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true
-          })
-        ]).start()
-  
-      }
-
-      Animated.timing(this.state.fadeAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true
-      }).start(animation2);
-
-      
-    } else {
-
-      const animation2 = () => {
-        this.setState({ index: this.state.index + 1, side: 'front', changingCard: false });
-        this.state.moveAnim.setValue({ x: 0 });
-
-        Animated.timing(this.state.fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }).start();
-      }
-
+    if (this.props.index < this.props.currentIndex) {
       Animated.parallel([
         Animated.timing(this.state.moveAnim, {
           toValue: -screenWidth,
@@ -104,22 +57,58 @@ class AnimationTest extends React.Component {
           duration: 400,
           useNativeDriver: true
         })
-      ]).start(animation2)
+      ]).start()
+    } else {
+      Animated.parallel([
+        Animated.timing(this.state.moveAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true
+        }),
+        Animated.timing(this.state.fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true
+        })
+      ]).start()
     }
+
+    if (this.props.index === this.props.currentIndex) {
+      Animated.spring(this.state.scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 10,
+        useNativeDriver: true
+      }).start();
+      if (this.props.side === 'back') {
+        Animated.spring(this.animatedValue, {
+          toValue: 180,
+          friction: 8,
+          tension: 10,
+          useNativeDriver: true
+        }).start();
+      } else {
+        Animated.spring(this.animatedValue, {
+          toValue: 0,
+          friction: 8,
+          tension: 10,
+          useNativeDriver: true
+        }).start();
+      }
+    } else if (this.props.index > this.props.currentIndex) {
+      Animated.spring(this.state.scaleAnim, {
+        toValue: .7,
+        friction: 8,
+        tension: 10,
+        useNativeDriver: true
+      }).start();
+    }
+
 
   };
 
   render() {
-    const index = this.state.index;
-    const side = this.state.side;
-
-    // const screenHeight = Dimensions.get('window').height;
-
-    // const screenDimensionStyle = {
-    //   width: screenWidth,
-    //   height: screenHeight
-    // }
-
+    const screenWidth = Dimensions.get('window').width;
     const frontAnimatedStyle = {
       transform: [
         { rotateX: this.frontInterpolate }
@@ -131,18 +120,51 @@ class AnimationTest extends React.Component {
       ]
     }
 
-    //const cardFace = cards[index][side];
-    const bodyStyles = { marginTop: this.state.statusBarHeight };
+    this.moveIn();
 
-    const cardFace = <Animated.View style={[styles.flipWrapper, { opacity: this.state.fadeAnim, left: this.state.moveAnim.x }]}>
+    return (<Animated.View style={[styles.flipWrapper, {
+      opacity: this.state.fadeAnim,
+      left: this.state.moveAnim.x,
+      transform: [{ scaleX: this.state.scaleAnim.x}, {scaleY: this.state.scaleAnim.y}],
+      zIndex: -this.props.index
+    }]}>
       <Animated.View style={[backAnimatedStyle, styles.flipCard, styles.flipCardBack]}>
-        {cards[index]['back']}
+        {this.props.card['back']}
       </Animated.View>
       <Animated.View style={[styles.flipCard, frontAnimatedStyle]}>
-        {cards[index]['front']}
+        {this.props.card['front']}
       </Animated.View>
-    </Animated.View>
+    </Animated.View>);
+  }
 
+}
+
+class AnimationTest extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      index: 0,
+      side: 'front',
+      statusBarHeight: getStatusBarHeight(),
+    };
+
+  }
+
+  render() {
+    const index = this.state.index;
+    const side = this.state.side;
+
+    const bodyStyles = { marginTop: this.state.statusBarHeight };
+
+    const cardFace = cards.map((card, i) => (
+      <Card card={card}
+        index={i}
+        currentIndex={index}
+        side={this.state.side}
+        key={i} />)
+    );
 
     const ctrlStyles = {};
     if (Platform.OS === 'ios') {
@@ -174,7 +196,6 @@ class AnimationTest extends React.Component {
           {cardFace}
         </View>
 
-
         <View style={[ctrlStyles, styles.ctrls]}>
           {btns}
         </View>
@@ -186,40 +207,18 @@ class AnimationTest extends React.Component {
     const side = this.state.side;
     this.setState({ side: side === 'front' ? 'back' : 'front' });
 
-    if (this.value >= 90) {
-      Animated.spring(this.animatedValue, {
-        toValue: 0,
-        friction: 8,
-        tension: 10,
-        useNativeDriver: true
-      }).start();
-    } else {
-      Animated.spring(this.animatedValue, {
-        toValue: 180,
-        friction: 8,
-        tension: 10,
-        useNativeDriver: true
-      }).start();
-    }
-
   };
 
   prevCard = () => {
     if (this.state.index <= 0) { return; }
-    // this.setState({ index: this.state.index - 1, side: 'front' });
-    this.setState({ changingCard: true });
-    this.moveIn(-1);
+    this.setState({ index: this.state.index - 1, side: 'front' });
 
   };
 
   nextCard = () => {
     if (this.state.index >= cards.length - 1) { return; }
+    this.setState({ index: this.state.index + 1, side: 'front' });
 
-    this.setState({ changingCard: true });
-
-    // this.setState({ index: this.state.index + 1, side: 'front' });
-
-    this.moveIn();
   };
 }
 
@@ -247,6 +246,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
+    transform: [{scaleX: 0.7, scaleY: 0.7 }],
   },
   flipCard: {
     position: 'absolute',
@@ -257,7 +257,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backfaceVisibility: 'hidden',
     height: '100%',
-    width: '100%'
+    width: '100%',
+    backgroundColor: 'white'
   },
   flipCardBack: {
     backgroundColor: 'lightgreen'
